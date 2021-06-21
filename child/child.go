@@ -5,6 +5,7 @@ import (
 	"net"
 	"os/exec"
 	"strconv"
+	"time"
 )
 
 type work struct {
@@ -19,17 +20,18 @@ type node struct {
 var workload []work
 
 func Initialize(rootIp string, rootPort int) {
-	master := node {
-		ip: rootIp,
-		port: rootPort,
-	}
-	response, err := sendMessage(master, "init")
+	conn, err  := net.Dial("tcp", rootIp + ":" + strconv.Itoa(rootPort))
 	if err != nil {
 		panic(err)
 	}
-	if response == "ack" {
-		fmt.Println("connected to root")
-	}
+//	response, err := sendMessage(conn, "init\n")
+//	if err != nil {
+//		panic(err)
+//	}
+//	if response == "ack" {
+//		fmt.Println("connected to root")
+//	}
+	go pingRoot(conn)
 }
 
 func AddWork(merit int, command string) {
@@ -48,17 +50,20 @@ func executeCommand(command string, priority int) {
 	fmt.Print(string(output[:]))
 }
 
-func sendMessage(dest node, message string) (string, error) {
-	conn, err  := net.Dial("tcp", dest.ip + ":" + strconv.Itoa(dest.port))
+func sendMessage(conn net.Conn, message string) (error) {
+	_, err := conn.Write([]byte(message))
 	if err != nil {
-		return "", err
+		return err
 	}
-	defer conn.Close()
-	conn.Write([]byte(message))
-	response := make([]byte, 4096)
-	_, err = conn.Read(response)
-	if err != nil {
-		return "", err
+	return nil
+}
+
+func pingRoot( conn net.Conn) {
+	for {
+		err := sendMessage(conn, "1\n")
+		if err != nil {
+			fmt.Println(err)
+		}
+		time.Sleep(5* time.Second)
 	}
-	return string(response), nil
 }

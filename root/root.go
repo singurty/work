@@ -1,6 +1,7 @@
 package root
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"strconv"
@@ -20,7 +21,8 @@ func listenForChildren(address string, port int) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+			continue
 		}
 		go handleChildren(conn)
 	}
@@ -28,4 +30,9 @@ func listenForChildren(address string, port int) {
 
 func handleChildren(conn net.Conn) {
 	fmt.Println("new child connected:", conn.RemoteAddr().String())
+	buffer, err := bufio.NewReader(conn).ReadBytes('\n')
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(buffer))
 }
