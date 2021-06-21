@@ -33,7 +33,8 @@ func Initialize(rootIp string, rootPort int) {
 //	if response == "ack" {
 //		fmt.Println("connected to root")
 //	}
-	pingRoot(conn, &wg)
+	wg.Add(1)
+ 	go pingRoot(&conn, &wg)
 	wg.Wait()
 }
 
@@ -61,9 +62,9 @@ func sendMessage(conn net.Conn, message string) (error) {
 	return nil
 }
 
-func pingRoot(conn net.Conn, wg *sync.WaitGroup) {
+func pingRoot(conn *net.Conn, wg *sync.WaitGroup) {
 	for {
-		err := sendMessage(conn, "1\n")
+		err := sendMessage(*conn, "1\n")
 		if err != nil {
 			fmt.Println(err)
 			break
