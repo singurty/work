@@ -3,15 +3,16 @@ package root
 import (
 	"fmt"
 	"net"
+	"strconv"
 )
 
-func Initialize() {
-
+func Initialize(address string, port int) {
+	listenForChildren(address, port)
 }
 
 func listenForChildren(address string, port int) {
 	fmt.Println("listening for children")
-	ln, err := net.Listen("tcp", ":8000")
+	ln, err := net.Listen("tcp", address + ":" + strconv.Itoa(port))
 	if err != nil {
 		panic(err)
 	}
