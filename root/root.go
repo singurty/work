@@ -1,4 +1,4 @@
-package master
+package root
 
 func Initialize() {
 

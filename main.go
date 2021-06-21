@@ -3,14 +3,14 @@ package main
 import (
 	"fmt"
 	"os"
-	"fakework/master"
-	"fakework/slave"
+	"fakework/root"
+	"fakework/chld"
 )
 
 func main() {
-	if os.Args[1] == "slave" {
-		slave.Initialize()
-	} else if os.Args[1] == "master" {
-		master.Initialize()
+	if os.Args[1] == "child" {
+		child.Initialize()
+	} else if os.Args[1] == "root" {
+		root.Initialize()
 	}
 }

@@ -1,9 +1,10 @@
-package slave
+package child
 
 import (
 	"os/exec"
 	"fmt"
 	"net"
+	"strconv"
 )
 
 type work struct {
@@ -17,10 +18,10 @@ type node struct {
 
 var workload []work
 
-func Initialize(masterIp string, masterPort int) {
+func Initialize(rootIp string, rootPort int) {
 	master := node {
-		ip: masterIp,
-		port: masterPort,
+		ip: rootIp,
+		port: rootPort,
 	}
 	sendMessage(master, "init")
 }
@@ -41,6 +42,7 @@ func executeCommand(command string, priority int) {
 	fmt.Print(string(output[:]))
 }
 
-func sendMessage(dest node, message string) {
-	conn, err := net.Dial("tcp", dest.ip + ':' + dest.port)
+func sendMessage(dest node, message string) (response string, err error) {
+	conn, err  := net.Dial("tcp", dest.ip + ":" + strconv.Itoa(dest.port))
+	conn.Write([]byte(message))
 }
