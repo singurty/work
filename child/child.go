@@ -1,9 +1,9 @@
 package child
 
 import (
-	"os/exec"
 	"fmt"
 	"net"
+	"os/exec"
 	"strconv"
 )
 
@@ -23,7 +23,13 @@ func Initialize(rootIp string, rootPort int) {
 		ip: rootIp,
 		port: rootPort,
 	}
-	sendMessage(master, "init")
+	response, err := sendMessage(master, "init")
+	if err != nil {
+		panic(err)
+	}
+	if response == "ack" {
+		fmt.Println("connected to root")
+	}
 }
 
 func AddWork(merit int, command string) {
@@ -42,7 +48,17 @@ func executeCommand(command string, priority int) {
 	fmt.Print(string(output[:]))
 }
 
-func sendMessage(dest node, message string) (response string, err error) {
+func sendMessage(dest node, message string) (string, error) {
 	conn, err  := net.Dial("tcp", dest.ip + ":" + strconv.Itoa(dest.port))
+	if err != nil {
+		return "", err
+	}
+	defer conn.Close()
 	conn.Write([]byte(message))
+	response := make([]byte, 4096)
+	_, err = conn.Read(response)
+	if err != nil {
+		return "", err
+	}
+	return string(response), nil
 }

@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"fakework/root"
-	"fakework/chld"
+	"github.com/singurty/fakework/root"
+	"github.com/singurty/fakework/child"
 )
 
 func main() {
