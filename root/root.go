@@ -24,15 +24,16 @@ func listenForChildren(address string, port int) {
 			fmt.Println(err)
 			continue
 		}
-		go handleChildren(conn)
+		go handleChild(conn)
 	}
 }
 
-func handleChildren(conn net.Conn) {
+func handleChild(conn net.Conn) {
 	fmt.Println("new child connected:", conn.RemoteAddr().String())
-	buffer, err := bufio.NewReader(conn).ReadBytes('\n')
-	if err != nil {
-		fmt.Println(err)
+	for {
+		buffer, _ := bufio.NewReader(conn).ReadBytes('\n')
+		if len(buffer) > 0 {
+			fmt.Println(string(buffer))
+		}
 	}
-	fmt.Println(string(buffer))
 }

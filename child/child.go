@@ -5,6 +5,7 @@ import (
 	"net"
 	"os/exec"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -20,6 +21,7 @@ type node struct {
 var workload []work
 
 func Initialize(rootIp string, rootPort int) {
+	var wg sync.WaitGroup
 	conn, err  := net.Dial("tcp", rootIp + ":" + strconv.Itoa(rootPort))
 	if err != nil {
 		panic(err)
@@ -31,7 +33,8 @@ func Initialize(rootIp string, rootPort int) {
 //	if response == "ack" {
 //		fmt.Println("connected to root")
 //	}
-	go pingRoot(conn)
+	pingRoot(conn, &wg)
+	wg.Wait()
 }
 
 func AddWork(merit int, command string) {
@@ -58,12 +61,14 @@ func sendMessage(conn net.Conn, message string) (error) {
 	return nil
 }
 
-func pingRoot( conn net.Conn) {
+func pingRoot(conn net.Conn, wg *sync.WaitGroup) {
 	for {
 		err := sendMessage(conn, "1\n")
 		if err != nil {
 			fmt.Println(err)
+			break
 		}
-		time.Sleep(5* time.Second)
+		time.Sleep(5 * time.Second)
 	}
+	wg.Done()
 }
