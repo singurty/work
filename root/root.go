@@ -29,6 +29,7 @@ func Initialize(address string, port int) {
 	go listenForChildren(address, port, &wg)
 	wg.Add(1)
 	go pollWorkload(&wg)
+	wg.Wait()
 }
 
 func AddWork(merit int, command string) {
@@ -44,16 +45,18 @@ func pollWorkload(wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
 		for _, work := range workload {
+			fmt.Println(work)
 			if work.status == 0 {
-				wg.Add(1)
-				go handleWork(work, wg)
+				handleWork(work)
 			}
 		}
 	}
 }
 
-func handleWork(work work, wg *sync.WaitGroup) {
-	defer wg.Done()
+func handleWork(work work) {
+	if len(children) == 0 {
+		return
+	}
 	rand.Seed(time.Now().Unix())
 	child := children[rand.Intn(len(children))]
 	conn := child.conn
@@ -62,6 +65,8 @@ func handleWork(work work, wg *sync.WaitGroup) {
 	err := sendMessage(conn, message)
 	if err != err {
 		fmt.Println("failed to send work")
+	} else {
+		work.status = 1
 	}
 }
 

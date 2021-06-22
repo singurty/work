@@ -29,14 +29,29 @@ func Initialize(rootIp string, rootPort int) {
 	}
 	wg.Add(1)
  	go pingRoot(&conn, &wg)
+	wg.Add(1)
+	go pollWorkload(&wg)
 	wg.Wait()
 }
 
-func poolRoot(conn net.Conn, c chan string) {
+func pollRoot(conn net.Conn, c chan string) {
 	for {
 		buffer, _ := bufio.NewReader(conn).ReadBytes('\n')
 		if len(buffer) == 0 {
 			continue
+		} else {
+			fmt.Println(string(buffer)[1])
+		}
+	}
+}
+
+func pollWorkload(wg *sync.WaitGroup) {
+	defer wg.Done()
+	for {
+		for _, work := range workload {
+			if work.status == 0 {
+				executeCommand(work.command)
+			}
 		}
 	}
 }
@@ -49,7 +64,7 @@ func addWork(command string) {
 	workload = append(workload, newWork)
 }
 
-func executeCommand(command string, priority int) {
+func executeCommand(command string) {
 	output, err := exec.Command(command).Output()
 	if err != nil {
 		fmt.Printf("%s", err)

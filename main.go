@@ -11,5 +11,6 @@ func main() {
 		child.Initialize("127.0.0.1", 8000)
 	} else if os.Args[1] == "root" {
 		root.Initialize("0.0.0.0", 8000)
+		root.AddWork(1, "neofetch")
 	}
 }
