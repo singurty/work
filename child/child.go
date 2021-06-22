@@ -26,13 +26,6 @@ func Initialize(rootIp string, rootPort int) {
 	if err != nil {
 		panic(err)
 	}
-//	response, err := sendMessage(conn, "init\n")
-//	if err != nil {
-//		panic(err)
-//	}
-//	if response == "ack" {
-//		fmt.Println("connected to root")
-//	}
 	wg.Add(1)
  	go pingRoot(&conn, &wg)
 	wg.Wait()
