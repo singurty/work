@@ -28,23 +28,30 @@ func Initialize(rootIp string, rootPort int) {
 		panic(err)
 	}
 	wg.Add(1)
- 	go pingRoot(&conn, &wg)
+	go pollRoot(&conn, &wg)
 	wg.Add(1)
-	go pollRoot(conn, &wg)
+ 	go pingRoot(&conn, &wg)
 	wg.Add(1)
 	go pollWorkload(&wg)
 	wg.Wait()
 }
 
-func pollRoot(conn net.Conn, wg *sync.WaitGroup) {
+func pollRoot(conn *net.Conn, wg *sync.WaitGroup) {
 	for {
-		buffer, _ := bufio.NewReader(conn).ReadBytes('\n')
+		buffer, err := bufio.NewReader(*conn).ReadBytes('\n')
+		if err != nil {
+			fmt.Println("error polling root")
+			break
+		}
 		if len(buffer) == 0 {
 			continue
 		} else {
-			fmt.Println(string(buffer)[1])
+			if string(buffer[0]) == "2" {
+				addWork(string(buffer[1:len(buffer)-1]))
+			}
 		}
 	}
+	wg.Done()
 }
 
 func pollWorkload(wg *sync.WaitGroup) {
@@ -83,13 +90,13 @@ func sendMessage(conn net.Conn, message string) (error) {
 }
 
 func pingRoot(conn *net.Conn, wg *sync.WaitGroup) {
-	defer wg.Done()
 	for {
 		err := sendMessage(*conn, "1\n")
 		if err != nil {
 			fmt.Println(err)
 			break
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(10 * time.Second)
 	}
+	wg.Done()
 }

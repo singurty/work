@@ -59,12 +59,13 @@ func handleWork(work *work) {
 	}
 	child := children[0]
 	conn := child.conn
-	message := "2" + work.command
+	message := "2" + work.command + "\n"
 	fmt.Println("sending work to child")
 	err := sendMessage(conn, message)
 	if err != nil {
 		fmt.Println("failed to send work")
 	} else {
+		fmt.Println("work sent to child")
 		work.status = 1
 	}
 }
@@ -118,7 +119,7 @@ func checkChildVitals(child *child, c chan int) {
 		select {
 		case <-c:
 			continue
-		case <-time.After(10 * time.Second):
+		case <-time.After(30 * time.Second):
 			child.alive = false
 			break
 		}
