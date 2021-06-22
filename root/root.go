@@ -3,7 +3,6 @@ package root
 import (
 	"bufio"
 	"fmt"
-	"math/rand"
 	"net"
 	"strconv"
 	"sync"
@@ -29,6 +28,7 @@ func Initialize(address string, port int) {
 	go listenForChildren(address, port, &wg)
 	wg.Add(1)
 	go pollWorkload(&wg)
+	AddWork(1, "neofetch")
 	wg.Wait()
 }
 
@@ -43,27 +43,26 @@ func AddWork(merit int, command string) {
 
 func pollWorkload(wg *sync.WaitGroup) {
 	defer wg.Done()
+	fmt.Println("polling workload")
 	for {
-		for _, work := range workload {
-			fmt.Println(work)
+		for index, work := range workload {
 			if work.status == 0 {
-				handleWork(work)
+				handleWork(&workload[index])
 			}
 		}
 	}
 }
 
-func handleWork(work work) {
+func handleWork(work *work) {
 	if len(children) == 0 {
 		return
 	}
-	rand.Seed(time.Now().Unix())
-	child := children[rand.Intn(len(children))]
+	child := children[0]
 	conn := child.conn
 	message := "2" + work.command
 	fmt.Println("sending work to child")
 	err := sendMessage(conn, message)
-	if err != err {
+	if err != nil {
 		fmt.Println("failed to send work")
 	} else {
 		work.status = 1

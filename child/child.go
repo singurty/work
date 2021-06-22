@@ -30,11 +30,13 @@ func Initialize(rootIp string, rootPort int) {
 	wg.Add(1)
  	go pingRoot(&conn, &wg)
 	wg.Add(1)
+	go pollRoot(conn, &wg)
+	wg.Add(1)
 	go pollWorkload(&wg)
 	wg.Wait()
 }
 
-func pollRoot(conn net.Conn, c chan string) {
+func pollRoot(conn net.Conn, wg *sync.WaitGroup) {
 	for {
 		buffer, _ := bufio.NewReader(conn).ReadBytes('\n')
 		if len(buffer) == 0 {
