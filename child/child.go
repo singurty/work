@@ -1,6 +1,7 @@
 package child
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os/exec"
@@ -10,7 +11,7 @@ import (
 )
 
 type work struct {
-	merit int
+	status int
 	command string
 }
 type node struct {
@@ -31,9 +32,18 @@ func Initialize(rootIp string, rootPort int) {
 	wg.Wait()
 }
 
-func AddWork(merit int, command string) {
+func poolRoot(conn net.Conn, c chan string) {
+	for {
+		buffer, _ := bufio.NewReader(conn).ReadBytes('\n')
+		if len(buffer) == 0 {
+			continue
+		}
+	}
+}
+
+func addWork(command string) {
 	newWork := work{
-		merit: merit,
+		status: 0,
 		command: command,
 	}
 	workload = append(workload, newWork)
@@ -56,6 +66,7 @@ func sendMessage(conn net.Conn, message string) (error) {
 }
 
 func pingRoot(conn *net.Conn, wg *sync.WaitGroup) {
+	defer wg.Done()
 	for {
 		err := sendMessage(*conn, "1\n")
 		if err != nil {
@@ -64,5 +75,4 @@ func pingRoot(conn *net.Conn, wg *sync.WaitGroup) {
 		}
 		time.Sleep(5 * time.Second)
 	}
-	wg.Done()
 }
