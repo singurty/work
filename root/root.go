@@ -3,6 +3,7 @@ package root
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"net"
 	"strconv"
 	"sync"
@@ -12,6 +13,7 @@ import (
 type child struct {
 	address string
 	alive bool
+	conn net.Conn
 }
 type work struct {
 	merit int
@@ -51,7 +53,21 @@ func pollWorkload(wg *sync.WaitGroup) {
 }
 
 func handleWork(work work, wg *sync.WaitGroup) {
+	defer wg.Done()
+	rand.Seed(time.Now().Unix())
+	child := children[rand.Intn(len(children))]
+	conn := child.conn
+	message := "2" + work.command
+	fmt.Println("sending work to child")
+	err := sendMessage(conn, message)
+	if err != err {
+		fmt.Println("failed to send work")
+	}
+}
 
+func sendMessage(conn net.Conn, message string) error {
+	_, err := conn.Write([]byte(message))
+	return err
 }
 
 func listenForChildren(address string, port int, wg *sync.WaitGroup) {
@@ -73,7 +89,7 @@ func listenForChildren(address string, port int, wg *sync.WaitGroup) {
 }
 
 func handleChild(conn net.Conn) {
-	child := child{address: conn.RemoteAddr().String(), alive: true}
+	child := child{address: conn.RemoteAddr().String(), alive: true, conn: conn}
 	children = append(children, child)
 	fmt.Println("new child connected:", child.address)
 	defer conn.Close()
