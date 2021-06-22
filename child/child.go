@@ -57,9 +57,10 @@ func pollRoot(conn *net.Conn, wg *sync.WaitGroup) {
 func pollWorkload(wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
-		for _, work := range workload {
+		for index, work := range workload {
 			if work.status == 0 {
 				executeCommand(work.command)
+				workload[index].status = 1	
 			}
 		}
 	}
@@ -77,6 +78,7 @@ func executeCommand(command string) {
 	output, err := exec.Command(command).Output()
 	if err != nil {
 		fmt.Printf("%s", err)
+		return
 	}
 	fmt.Print(string(output[:]))
 }
