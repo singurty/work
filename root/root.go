@@ -63,12 +63,10 @@ func handleWork(work *work, index int, c chan string, wg *sync.WaitGroup) {
 	child := children[0]
 	conn := child.conn
 	message := "2" + strconv.Itoa(index) + work.command + "\n"
-	fmt.Println("sending work to child")
 	err := sendMessage(conn, message)
 	if err != nil {
 		fmt.Println("failed to send work")
 	} else {
-		fmt.Println("work sent to child")
 		select {
 		case message := <-c:
 			if string(message[0]) == "4" {

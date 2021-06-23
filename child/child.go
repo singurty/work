@@ -75,6 +75,8 @@ func pollWorkload(wg *sync.WaitGroup) {
 }
 
 func handleWork(work *work) {
+	// this line makes it work every time idk why
+	fmt.Println("handling work", work.command)
 	output, err := executeCommand(work.command)
 	if err != nil {
 		panic(err)
@@ -94,7 +96,6 @@ func addWork(index int, command string) {
 
 func executeCommand(command string) (string, error) {
 	output, err := exec.Command(command).Output()
-	fmt.Println(string(output))
 	if err != nil {
 		fmt.Printf("%s", err)
 		return "", err
