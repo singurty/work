@@ -57,6 +57,16 @@ func pollWorkload(wg *sync.WaitGroup) {
 	}
 }
 
+/*
+Work status codes (for root)
+----------------------------
+| ID  | meaning                              |
+| --- | ------------------------------------ |
+| 0   | this work doesn't have a handler     |
+| 1   | there's a handler handling this work |
+| 2   | work has been successfully executed  |
+*/
+
 func handleWork(work *work, index int, c chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	work.handler = c
@@ -99,6 +109,18 @@ func listenForChildren(address string, port int, wg *sync.WaitGroup) {
 		go handleChild(conn)
 	}
 }
+
+/*
+Protocol IDs
+-------------
+| ID  | meaning                                                          |
+| --- | ---------------------------------------------------------------- |
+| 1   | Ping                                                             |
+| 2   | sending work. followed by index and command ending with "\n"     |
+| 3   | work added to workload. followed by work index                   |
+| 4   | successfully did the work. index and output followd up to "\n"   |
+| 5   | failed to do the work     
+*/
 
 func handleChild(conn net.Conn) {
 	child := child{address: conn.RemoteAddr().String(), alive: true, conn: conn}
