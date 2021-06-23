@@ -12,33 +12,37 @@ import (
 
 type work struct {
 	status int
+	index int
 	command string
 }
 type node struct {
-	ip string
-	port int
+	address string
+	conn net.Conn
 }
 
+var root node
 var workload []work
 
 func Initialize(rootIp string, rootPort int) {
 	var wg sync.WaitGroup
-	conn, err  := net.Dial("tcp", rootIp + ":" + strconv.Itoa(rootPort))
+	root = node{address: rootIp + ":" + strconv.Itoa(rootPort)}
+	conn, err  := net.Dial("tcp", root.address)
+	root.conn = conn
 	if err != nil {
 		panic(err)
 	}
 	wg.Add(1)
-	go pollRoot(&conn, &wg)
+	go pollRoot(&wg)
 	wg.Add(1)
- 	go pingRoot(&conn, &wg)
+ 	go pingRoot(&wg)
 	wg.Add(1)
 	go pollWorkload(&wg)
 	wg.Wait()
 }
 
-func pollRoot(conn *net.Conn, wg *sync.WaitGroup) {
+func pollRoot(wg *sync.WaitGroup) {
 	for {
-		buffer, err := bufio.NewReader(*conn).ReadBytes('\n')
+		buffer, err := bufio.NewReader(root.conn).ReadBytes('\n')
 		if err != nil {
 			fmt.Println("error polling root")
 			break
@@ -47,7 +51,12 @@ func pollRoot(conn *net.Conn, wg *sync.WaitGroup) {
 			continue
 		} else {
 			if string(buffer[0]) == "2" {
-				addWork(string(buffer[1:len(buffer)-1]))
+				index, err := strconv.Atoi(string(buffer[1]))
+				if err != nil {
+					fmt.Println("invalid work index received")
+					continue
+				}
+				addWork(index, string(buffer[2:len(buffer)-1]))
 			}
 		}
 	}
@@ -59,28 +68,38 @@ func pollWorkload(wg *sync.WaitGroup) {
 	for {
 		for index, work := range workload {
 			if work.status == 0 {
-				executeCommand(work.command)
-				workload[index].status = 1	
+				handleWork(&workload[index])
 			}
 		}
 	}
 }
 
-func addWork(command string) {
+func handleWork(work *work) {
+	output, err := executeCommand(work.command)
+	if err != nil {
+		panic(err)
+	}
+	work.status = 1	
+	sendMessage(root.conn, "4" + strconv.Itoa(work.index) + output + "\n")
+}
+
+func addWork(index int, command string) {
 	newWork := work{
 		status: 0,
 		command: command,
+		index: index,
 	}
 	workload = append(workload, newWork)
 }
 
-func executeCommand(command string) {
+func executeCommand(command string) (string, error) {
 	output, err := exec.Command(command).Output()
+	fmt.Println(string(output))
 	if err != nil {
 		fmt.Printf("%s", err)
-		return
+		return "", err
 	}
-	fmt.Print(string(output[:]))
+	return string(output), nil
 }
 
 func sendMessage(conn net.Conn, message string) (error) {
@@ -91,9 +110,9 @@ func sendMessage(conn net.Conn, message string) (error) {
 	return nil
 }
 
-func pingRoot(conn *net.Conn, wg *sync.WaitGroup) {
+func pingRoot(wg *sync.WaitGroup) {
 	for {
-		err := sendMessage(*conn, "1\n")
+		err := sendMessage(root.conn, "1\n")
 		if err != nil {
 			fmt.Println(err)
 			break

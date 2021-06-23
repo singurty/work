@@ -18,6 +18,7 @@ type work struct {
 	merit int
 	status int
 	command string
+	handler chan string
 }
 var children []child
 var workload []work
@@ -28,7 +29,7 @@ func Initialize(address string, port int) {
 	go listenForChildren(address, port, &wg)
 	wg.Add(1)
 	go pollWorkload(&wg)
-	AddWork(1, "neofetch")
+	AddWork(1, "whoami")
 	wg.Wait()
 }
 
@@ -46,27 +47,35 @@ func pollWorkload(wg *sync.WaitGroup) {
 	fmt.Println("polling workload")
 	for {
 		for index, work := range workload {
-			if work.status == 0 {
-				handleWork(&workload[index])
+			if work.status == 0 && len(children) > 0  {
+				wg.Add(1)
+				handler := make(chan string)
+				go handleWork(&workload[index], index, handler, wg)
+				workload[index].status = 1
 			}
 		}
 	}
 }
 
-func handleWork(work *work) {
-	if len(children) == 0 {
-		return
-	}
+func handleWork(work *work, index int, c chan string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	work.handler = c
 	child := children[0]
 	conn := child.conn
-	message := "2" + work.command + "\n"
+	message := "2" + strconv.Itoa(index) + work.command + "\n"
 	fmt.Println("sending work to child")
 	err := sendMessage(conn, message)
 	if err != nil {
 		fmt.Println("failed to send work")
 	} else {
 		fmt.Println("work sent to child")
-		work.status = 1
+		select {
+		case message := <-c:
+			if string(message[0]) == "4" {
+				fmt.Println("work executed successfully")
+				fmt.Println(message[1:])
+			}
+		}
 	}
 }
 
@@ -108,8 +117,21 @@ func handleChild(conn net.Conn) {
 		buffer, _ := bufio.NewReader(conn).ReadBytes('\n')
 		if len(buffer) == 0 {
 			continue
-		} else if string(buffer) == "1\n" {
-			vitals <- 1
+		} else {
+			switch string(buffer[0]) {
+			case "1":
+				vitals <- 1
+			case "3":
+			case "4":
+				index, err := strconv.Atoi(string(buffer[1]))
+				if err != nil {
+					fmt.Println("invalid work id received")
+					continue
+				}
+				work := workload[index]
+				handler := work.handler
+				handler <- "4" + string(buffer[2:len(buffer)-1]) 
+			}
 		}
 	}
 }
