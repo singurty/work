@@ -1,0 +1,1 @@
+fakework is meaningless. The question is what isn't? Why do people like fake shit so much? Maybe they're made up so that people will like them. But shouldn't that evil? Or should it really if people like it?
