@@ -12,7 +12,6 @@ var (
 )
 
 func main() {
-	kingpin.Version("0.0.1")
 	kingpin.Parse()
 	switch *mode {
 	case "root":
@@ -23,10 +22,11 @@ func main() {
 }
 
 func rootShell() {
-	prompt := prompt.New(root.Executor,
+	shell := prompt.New(
+		root.Executor,
 		root.Completer,
+		prompt.OptionPrefix(">> "),
 		prompt.OptionTitle("root control center"),
-		prompt.OptionInputTextColor(prompt.Yellow),
 	)
-	prompt.Run()
+	shell.Run()
 }

@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -45,7 +47,18 @@ func Initialize(address string, port int, c chan string) {
 }
 
 func Executor(s string) {
-
+	s = strings.TrimSpace(s)
+	switch s {
+	case "":
+		return
+	case "quit":
+	case "exit":
+		fmt.Println("exiting..")
+		os.Exit(0)
+		return
+	case "init":
+		Initialize()
+	}
 }
 
 func Completer(d prompt.Document) []prompt.Suggest {
