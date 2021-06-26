@@ -27,7 +27,7 @@ type work struct {
 var children []child
 var workload []work
 
-func Initialize(address string, port int, c chan string) {
+func Initialize(address string, port int) {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 	wg.Add(1)
@@ -35,29 +35,26 @@ func Initialize(address string, port int, c chan string) {
 	wg.Add(1)
 	go pollWorkload(&wg)
 	addWork(1, "whoami")
-	for {
-		select {
-		case msg := <-c:
-			if msg == "addwork" {
-				command := <-c
-				addWork(1, command)
-			}
-		}
-	}
 }
 
 func Executor(s string) {
 	s = strings.TrimSpace(s)
-	switch s {
-	case "":
-		return
+	values := strings.Fields(s)
+	switch strings.TrimSpace(values[0]) {
 	case "quit":
 	case "exit":
 		fmt.Println("exiting..")
 		os.Exit(0)
 		return
 	case "init":
-		Initialize()
+		port, err := strconv.Atoi(values[2])
+		if err != nil {
+			fmt.Println("invalid port number")
+			return
+		}
+		Initialize(values[1], port)
+	default:
+		fmt.Println("invalid command", s)
 	}
 }
 
