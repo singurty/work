@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/c-bata/go-prompt"
 )
 
 type child struct {
@@ -23,17 +25,38 @@ type work struct {
 var children []child
 var workload []work
 
-func Initialize(address string, port int) {
+func Initialize(address string, port int, c chan string) {
 	var wg sync.WaitGroup
+	defer wg.Wait()
 	wg.Add(1)
 	go listenForChildren(address, port, &wg)
 	wg.Add(1)
 	go pollWorkload(&wg)
-	AddWork(1, "whoami")
-	wg.Wait()
+	addWork(1, "whoami")
+	for {
+		select {
+		case msg := <-c:
+			if msg == "addwork" {
+				command := <-c
+				addWork(1, command)
+			}
+		}
+	}
 }
 
-func AddWork(merit int, command string) {
+func Executor(s string) {
+
+}
+
+func Completer(d prompt.Document) []prompt.Suggest {
+	s := []prompt.Suggest{
+		{Text: "init", Description: "initialize root node"},
+		{Text: "add", Description: "add work"},
+	}
+	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+}
+
+func addWork(merit int, command string) {
 	newWork := work{
 		merit: merit,
 		status: 0,
