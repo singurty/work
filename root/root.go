@@ -4,12 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"net"
-	"os"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
-
+	"strconv"
 	"github.com/c-bata/go-prompt"
 )
 
@@ -27,41 +24,20 @@ type work struct {
 var children []child
 var workload []work
 
-func Initialize(address string, port int) {
-	var wg sync.WaitGroup
-	defer wg.Wait()
+func Initialize(address string, port int, wg *sync.WaitGroup) {
 	wg.Add(1)
-	go listenForChildren(address, port, &wg)
+	go listenForChildren(address, port, wg)
+	fmt.Println("listening for children")
 	wg.Add(1)
-	go pollWorkload(&wg)
+	go pollWorkload(wg)
+	fmt.Println("polling workload")
 	addWork(1, "whoami")
-}
-
-func Executor(s string) {
-	s = strings.TrimSpace(s)
-	values := strings.Fields(s)
-	switch strings.TrimSpace(values[0]) {
-	case "quit":
-	case "exit":
-		fmt.Println("exiting..")
-		os.Exit(0)
-		return
-	case "init":
-		port, err := strconv.Atoi(values[2])
-		if err != nil {
-			fmt.Println("invalid port number")
-			return
-		}
-		Initialize(values[1], port)
-	default:
-		fmt.Println("invalid command", s)
-	}
 }
 
 func Completer(d prompt.Document) []prompt.Suggest {
 	s := []prompt.Suggest{
-		{Text: "init", Description: "initialize root node"},
-		{Text: "add", Description: "add work"},
+	//	{Text: "init", Description: "initialize root node"},
+	//	{Text: "add", Description: "add work"},
 	}
 	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
 }
@@ -77,7 +53,6 @@ func addWork(merit int, command string) {
 
 func pollWorkload(wg *sync.WaitGroup) {
 	defer wg.Done()
-	fmt.Println("polling workload")
 	for {
 		for index, work := range workload {
 			if work.status == 0 && len(children) > 0  {
@@ -113,8 +88,8 @@ func handleWork(work *work, index int, c chan string, wg *sync.WaitGroup) {
 		select {
 		case message := <-c:
 			if string(message[0]) == "4" {
-				fmt.Println("work executed successfully")
-				fmt.Println(message[1:])
+				fmt.Print("work executed successfully")
+				fmt.Print(message[1:])
 			}
 		}
 	}
@@ -126,7 +101,6 @@ func sendMessage(conn net.Conn, message string) error {
 }
 
 func listenForChildren(address string, port int, wg *sync.WaitGroup) {
-	fmt.Println("listening for children")
 	ln, err := net.Listen("tcp", address + ":" + strconv.Itoa(port))
 	if err != nil {
 		panic(err)
