@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"strings"
+	"strconv"
 	"sync"
 
 	//"strconv"
-	"github.com/jroimartin/gocui"
 	"github.com/singurty/fakework/child"
 	"github.com/singurty/fakework/root"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/cobra"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -20,62 +20,57 @@ var (
 
 func main() {
 	defer wg.Wait()
-	kingpin.Parse()
-	switch *mode {
-	case "root":
-		rootControlPanel()
-	case "child":
-		child.Initialize("127.0.0.1", 8001)
+	var cmdRoot = &cobra.Command{
+		Use: "root",
+		Short: "run a root node",
+		Long: "Run a root node listening on specified IP address and port. If IP address is not specified it'll listen on all interfaces",
+		Args: cobra.RangeArgs(1, 2),
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) == 1 {
+				port, err := strconv.Atoi(args[0])
+				if err != nil {
+					fmt.Println("invalid port number")
+					return
+				}
+				root.Initialize("0.0.0.0", port, &wg)
+			} else {
+				port, err := strconv.Atoi(args[1])
+				if err != nil {
+					fmt.Println("invalid port number")
+					return
+				}
+				root.Initialize(args[0], port, &wg)
+
+			}
+			fmt.Println("starting root control panel")
+			rootControlPanel()
+		},
 	}
+	var cmdChild = &cobra.Command{
+		Use: "child",
+		Short: "run a child node",
+		Long: "Run a child node and connect to a root node listening on specified IP address and port",
+		Args: cobra.MinimumNArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			port, err := strconv.Atoi(args[1])
+			if err != nil {
+				fmt.Println("invalid port number")
+				return
+			}
+			child.Initialize(args[0], port)
+		},
+	}
+	var rootCmd = &cobra.Command{Use: "fakeroot"}
+	rootCmd.AddCommand(cmdRoot, cmdChild)
+	rootCmd.Execute()
 }
 
 func rootControlPanel() {
-	g, err := gocui.NewGui(gocui.OutputNormal)
-	if err != nil {
-		fmt.Println("could not strat root control panel")
-		return
-	}
-	defer g.Close()
-	g.SetManagerFunc(rootLayout)
-	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-		fmt.Println("could not start main loop")
-		return
-	}
-}
-
-func rootLayout(g *gocui.Gui) error {
-	maxX, maxY := g.Size()
-	logView, err := g.SetView("root control logs", maxX, maxY/2, maxX, maxY/2)
-	if err != nil {
-		return err
-	}
-	logView.Editable = false
-	logView.Frame = true
-	logView.Title = "logs"
-	logView.Wrap = true
-	logView.Autoscroll = true
-	return nil
-}
-
-func executer(s string) {
-	s = strings.TrimSpace(s)
-	values := strings.Fields(s)
-	switch strings.TrimSpace(values[0]) {
-	case "quit":
-	case "exit":
-		fmt.Println("exiting..")
-		os.Exit(0)
-		return
-	case "init":
-		// commented for easier debugging
-		//port, err := strconv.Atoi(values[2])
-		//if err != nil {
-		//	fmt.Println("invalid port number")
-		//	return
-		//}
-		//root.Initialize(values[1], port, &wg)
-		root.Initialize("0.0.0.0", 8001, &wg)
-	default:
-		fmt.Println("invalid command", s)
-	}
+	r := gin.Default()
+	r.GET("/webui", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"mesage": "pong",
+		})
+	})
+	r.Run()
 }
