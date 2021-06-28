@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 	"strconv"
-	"github.com/c-bata/go-prompt"
 )
 
 type child struct {
@@ -32,14 +31,6 @@ func Initialize(address string, port int, wg *sync.WaitGroup) {
 	go pollWorkload(wg)
 	fmt.Println("polling workload")
 	addWork(1, "whoami")
-}
-
-func Completer(d prompt.Document) []prompt.Suggest {
-	s := []prompt.Suggest{
-	//	{Text: "init", Description: "initialize root node"},
-	//	{Text: "add", Description: "add work"},
-	}
-	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
 }
 
 func addWork(merit int, command string) {

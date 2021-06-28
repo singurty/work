@@ -1,12 +1,13 @@
 package main
 
 import (
-	"strings"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
+
 	//"strconv"
-	"github.com/c-bata/go-prompt"
+	"github.com/jroimartin/gocui"
 	"github.com/singurty/fakework/child"
 	"github.com/singurty/fakework/root"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -22,20 +23,38 @@ func main() {
 	kingpin.Parse()
 	switch *mode {
 	case "root":
-		rootShell()
+		rootControlPanel()
 	case "child":
 		child.Initialize("127.0.0.1", 8001)
 	}
 }
 
-func rootShell() {
-	shell := prompt.New(
-		executer,
-		root.Completer,
-		prompt.OptionPrefix(">> "),
-		prompt.OptionTitle("root control center"),
-	)
-	shell.Run()
+func rootControlPanel() {
+	g, err := gocui.NewGui(gocui.OutputNormal)
+	if err != nil {
+		fmt.Println("could not strat root control panel")
+		return
+	}
+	defer g.Close()
+	g.SetManagerFunc(rootLayout)
+	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
+		fmt.Println("could not start main loop")
+		return
+	}
+}
+
+func rootLayout(g *gocui.Gui) error {
+	maxX, maxY := g.Size()
+	logView, err := g.SetView("root control logs", maxX, maxY/2, maxX, maxY/2)
+	if err != nil {
+		return err
+	}
+	logView.Editable = false
+	logView.Frame = true
+	logView.Title = "logs"
+	logView.Wrap = true
+	logView.Autoscroll = true
+	return nil
 }
 
 func executer(s string) {
