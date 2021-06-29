@@ -6,6 +6,7 @@ import (
 	"sync"
 	"github.com/singurty/fakework/child"
 	"github.com/singurty/fakework/rootd"
+	"github.com/singurty/fakework/root"
 	"github.com/spf13/cobra"
 )
 
@@ -14,6 +15,7 @@ var wg sync.WaitGroup
 func main() {
 	defer wg.Wait()
 	var logFile string
+	var follow bool
 	var cmdRoot = &cobra.Command{
 		Use: "root",
 		Short: "run a root node",
@@ -52,8 +54,19 @@ func main() {
 			child.Initialize(args[0], port)
 		},
 	}
+	var cmdLog = &cobra.Command{
+		Use: "log",
+		Short: "view root daemon logs",
+		Long: "Read logs produced by the root daemon. Reads from 'root.log' file by default",
+		Args: cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			root.ViewLog(logFile, follow)
+		},
+	}
 	var rootCmd = &cobra.Command{Use: "fakeroot"}
 	cmdRoot.Flags().StringVarP(&logFile, "log", "l", "root.log", "file to write logs to (Default: root.log)")
-	rootCmd.AddCommand(cmdRoot, cmdChild)
+	cmdLog.Flags().BoolVarP(&follow, "follow", "f", false, "keep polling for logs")
+	cmdLog.Flags().StringVarP(&logFile, "log", "l", "root.log", "file to write logs to (Default: root.log)")
+	rootCmd.AddCommand(cmdRoot, cmdChild, cmdLog)
 	rootCmd.Execute()
 }
