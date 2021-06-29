@@ -2,10 +2,11 @@ package root
 
 import (
 	"bufio"
-	"fmt"
 	"net"
 	"sync"
 	"time"
+	"log"
+	"os"
 	"strconv"
 )
 
@@ -23,13 +24,20 @@ type work struct {
 var children []child
 var workload []work
 
-func Initialize(address string, port int, wg *sync.WaitGroup) {
+func Initialize(address string, port int, logFile string, wg *sync.WaitGroup) {
+	f, err :=  os.OpenFile(logFile, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
+	log.SetOutput(f)
+	log.Println("test log entry")
 	wg.Add(1)
 	go listenForChildren(address, port, wg)
-	fmt.Println("listening for children")
+	log.Println("listening for children")
 	wg.Add(1)
 	go pollWorkload(wg)
-	fmt.Println("polling workload")
+	log.Println("polling workload")
 	addWork(1, "whoami")
 }
 
@@ -74,13 +82,13 @@ func handleWork(work *work, index int, c chan string, wg *sync.WaitGroup) {
 	message := "2" + strconv.Itoa(index) + work.command + "\n"
 	err := sendMessage(conn, message)
 	if err != nil {
-		fmt.Println("failed to send work")
+		log.Println("failed to send work")
 	} else {
 		select {
 		case message := <-c:
 			if string(message[0]) == "4" {
-				fmt.Print("work executed successfully")
-				fmt.Print(message[1:])
+				log.Print("work executed successfully")
+				log.Print(message[1:])
 			}
 		}
 	}
@@ -101,7 +109,7 @@ func listenForChildren(address string, port int, wg *sync.WaitGroup) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			continue
 		}
 		go handleChild(conn)
@@ -123,13 +131,13 @@ Protocol IDs
 func handleChild(conn net.Conn) {
 	child := child{address: conn.RemoteAddr().String(), alive: true, conn: conn}
 	children = append(children, child)
-	fmt.Println("new child connected:", child.address)
+	log.Println("new child connected:", child.address)
 	defer conn.Close()
 	vitals := make(chan int)
 	go checkChildVitals(&child, vitals)
 	for {
 		if !child.alive {
-			fmt.Println("child dead:", child.address)
+			log.Println("child dead:", child.address)
 			return
 		}
 		buffer, _ := bufio.NewReader(conn).ReadBytes('\n')
@@ -143,7 +151,7 @@ func handleChild(conn net.Conn) {
 			case "4":
 				index, err := strconv.Atoi(string(buffer[1]))
 				if err != nil {
-					fmt.Println("invalid work id received")
+					log.Println("invalid work id received")
 					continue
 				}
 				work := workload[index]
