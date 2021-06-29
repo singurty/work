@@ -8,15 +8,10 @@ import (
 	//"strconv"
 	"github.com/singurty/fakework/child"
 	"github.com/singurty/fakework/root"
-	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var wg sync.WaitGroup
-var (
-	mode = kingpin.Arg("mode", "run either root or chld node").String()
-)
 
 func main() {
 	defer wg.Wait()
@@ -43,7 +38,6 @@ func main() {
 
 			}
 			fmt.Println("starting root control panel")
-			rootControlPanel()
 		},
 	}
 	var cmdChild = &cobra.Command{
@@ -63,14 +57,4 @@ func main() {
 	var rootCmd = &cobra.Command{Use: "fakeroot"}
 	rootCmd.AddCommand(cmdRoot, cmdChild)
 	rootCmd.Execute()
-}
-
-func rootControlPanel() {
-	r := gin.Default()
-	r.GET("/webui", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"mesage": "pong",
-		})
-	})
-	r.Run()
 }
