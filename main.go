@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"sync"
 	"github.com/singurty/fakework/child"
-	"github.com/singurty/fakework/root"
+	"github.com/singurty/fakework/rootd"
 	"github.com/spf13/cobra"
 )
 
@@ -26,17 +26,16 @@ func main() {
 					fmt.Println("invalid port number")
 					return
 				}
-				root.Initialize("0.0.0.0", port, logFile, &wg)
+				rootd.Initialize("0.0.0.0", port, logFile, &wg)
 			} else {
 				port, err := strconv.Atoi(args[1])
 				if err != nil {
 					fmt.Println("invalid port number")
 					return
 				}
-				root.Initialize(args[0], port, logFile, &wg)
+				rootd.Initialize(args[0], port, logFile, &wg)
 
 			}
-			fmt.Println("starting root control panel")
 		},
 	}
 	var cmdChild = &cobra.Command{

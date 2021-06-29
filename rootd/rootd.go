@@ -1,4 +1,4 @@
-package root
+package rootd
 
 import (
 	"bufio"
@@ -31,7 +31,6 @@ func Initialize(address string, port int, logFile string, wg *sync.WaitGroup) {
 	}
 	defer f.Close()
 	log.SetOutput(f)
-	log.Println("test log entry")
 	wg.Add(1)
 	go listenForChildren(address, port, wg)
 	log.Println("listening for children")
