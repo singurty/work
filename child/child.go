@@ -75,13 +75,15 @@ func pollWorkload(wg *sync.WaitGroup) {
 }
 
 func handleWork(work *work) {
-	// this line makes it work every time idk why
-	fmt.Println("handling work", work.command)
+	// check if command is added yet. this prevents race condition in which and entry has been creted but command has not been added
+	if len(work.command) == 0 {
+		return
+	}
 	output, err := executeCommand(work.command)
 	if err != nil {
 		panic(err)
 	}
-	work.status = 1	
+	work.status = 1
 	sendMessage(root.conn, "4" + strconv.Itoa(work.index) + output + "\n")
 }
 
@@ -97,7 +99,7 @@ func addWork(index int, command string) {
 func executeCommand(command string) (string, error) {
 	output, err := exec.Command(command).Output()
 	if err != nil {
-		fmt.Printf("%s", err)
+		fmt.Println(err)
 		return "", err
 	}
 	return string(output), nil

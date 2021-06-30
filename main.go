@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"sync"
+
 	"github.com/singurty/fakework/child"
-	"github.com/singurty/fakework/rootd"
 	"github.com/singurty/fakework/root"
+	"github.com/singurty/fakework/rootd"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +16,9 @@ var wg sync.WaitGroup
 
 func main() {
 	defer wg.Wait()
-	var logFile string
+	var logFile *os.File
+	defer logFile.Close()
+	var logFileName string
 	var follow bool
 	var cmdRoot = &cobra.Command{
 		Use: "root",
@@ -28,6 +32,11 @@ func main() {
 					fmt.Println("invalid port number")
 					return
 				}
+				logFile, err :=  os.OpenFile(logFileName, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+				if err != nil {
+					fmt.Println("error opening file:", err)
+					return
+				}
 				rootd.Initialize("0.0.0.0", port, logFile, &wg)
 			} else {
 				port, err := strconv.Atoi(args[1])
@@ -35,8 +44,12 @@ func main() {
 					fmt.Println("invalid port number")
 					return
 				}
+				logFile, err :=  os.OpenFile(logFileName, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+				if err != nil {
+					fmt.Println("error opening file:", err)
+					return
+				}
 				rootd.Initialize(args[0], port, logFile, &wg)
-
 			}
 		},
 	}
@@ -60,13 +73,13 @@ func main() {
 		Long: "Read logs produced by the root daemon. Reads from 'root.log' file by default",
 		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			root.ViewLog(logFile, follow)
+			root.ViewLog(logFileName, follow)
 		},
 	}
 	var rootCmd = &cobra.Command{Use: "fakeroot"}
-	cmdRoot.Flags().StringVarP(&logFile, "log", "l", "root.log", "file to write logs to (Default: root.log)")
+	cmdRoot.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
 	cmdLog.Flags().BoolVarP(&follow, "follow", "f", false, "keep polling for logs")
-	cmdLog.Flags().StringVarP(&logFile, "log", "l", "root.log", "file to write logs to (Default: root.log)")
+	cmdLog.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
 	rootCmd.AddCommand(cmdRoot, cmdChild, cmdLog)
 	rootCmd.Execute()
 }

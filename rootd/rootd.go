@@ -2,12 +2,12 @@ package rootd
 
 import (
 	"bufio"
-	"net"
-	"sync"
-	"time"
 	"log"
+	"net"
 	"os"
 	"strconv"
+	"sync"
+	"time"
 )
 
 type child struct {
@@ -24,12 +24,7 @@ type work struct {
 var children []child
 var workload []work
 
-func Initialize(address string, port int, logFile string, wg *sync.WaitGroup) {
-	f, err :=  os.OpenFile(logFile, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
+func Initialize(address string, port int, f *os.File, wg *sync.WaitGroup) {
 	log.SetOutput(f)
 	wg.Add(1)
 	go listenForChildren(address, port, wg)
@@ -82,13 +77,14 @@ func handleWork(work *work, index int, c chan string, wg *sync.WaitGroup) {
 	err := sendMessage(conn, message)
 	if err != nil {
 		log.Println("failed to send work")
-	} else {
-		select {
-		case message := <-c:
-			if string(message[0]) == "4" {
-				log.Print("work executed successfully")
-				log.Print(message[1:])
-			}
+		work.status = 0
+		return
+	}
+	select {
+	case message := <-c:
+		if string(message[0]) == "4" {
+			log.Println("work executed successfully")
+			log.Println(message[1:])
 		}
 	}
 }
@@ -142,22 +138,22 @@ func handleChild(conn net.Conn) {
 		buffer, _ := bufio.NewReader(conn).ReadBytes('\n')
 		if len(buffer) == 0 {
 			continue
-		} else {
-			switch string(buffer[0]) {
-			case "1":
-				vitals <- 1
-			case "3":
-			case "4":
-				index, err := strconv.Atoi(string(buffer[1]))
-				if err != nil {
-					log.Println("invalid work id received")
-					continue
-				}
-				work := workload[index]
-				handler := work.handler
-				handler <- "4" + string(buffer[2:len(buffer)-1]) 
-			}
 		}
+		switch string(buffer[0]) {
+		case "1":
+			vitals <- 1
+		case "3":
+		case "4":
+			index, err := strconv.Atoi(string(buffer[1]))
+			if err != nil {
+				log.Println("invalid work id received")
+				continue
+			}
+			work := workload[index]
+			handler := work.handler
+			handler <- "4" + string(buffer[2:len(buffer)-1]) 
+		}
+		
 	}
 }
 
