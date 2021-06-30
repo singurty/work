@@ -14,3 +14,7 @@ func ViewLog(logFile string, follow bool) {
 		fmt.Println(line.Text)
 	}
 }
+
+func AddWork(command string, merit int) {
+
+}

@@ -76,10 +76,29 @@ func main() {
 			root.ViewLog(logFileName, follow)
 		},
 	}
+	var cmdAdd = &cobra.Command{
+		Use: "add",
+		Short: "add work",
+		Long: "add a command to be executed by child",
+		Args: cobra.RangeArgs(1, 2),
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) == 1 {
+				root.AddWork(args[0], 0)
+			} else if len(args) == 2 {
+				merit, err := strconv.Atoi(args[1])
+				if err != nil {
+					fmt.Println("invalid merit")
+					return
+				}
+				root.AddWork(args[0], merit)
+			}
+		},
+	}
 	var rootCmd = &cobra.Command{Use: "fakeroot"}
+
 	cmdRoot.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
 	cmdLog.Flags().BoolVarP(&follow, "follow", "f", false, "keep polling for logs")
 	cmdLog.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
-	rootCmd.AddCommand(cmdRoot, cmdChild, cmdLog)
+	rootCmd.AddCommand(cmdRoot, cmdChild, cmdLog, cmdAdd)
 	rootCmd.Execute()
 }
