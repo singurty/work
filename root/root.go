@@ -24,10 +24,14 @@ func AddWork(merit int, command string) {
 		fmt.Println("can not connect to the daemon")
 		panic(err)
 	}
-	var resp int
+	var resp rootd.Workload
 	args := &rootd.AddWorkArgs{
 		Merit: merit,
 		Command: command,
 	}
 	err = client.Call("Workload.AddWork", args, &resp)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(resp)
 }

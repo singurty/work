@@ -17,9 +17,9 @@ type child struct {
 	conn net.Conn
 }
 type Work struct {
-	merit int
-	status int
-	command string
+	Merit int
+	Status int
+	Command string
 	handler chan string
 }
 type AddWorkArgs struct {
@@ -43,18 +43,20 @@ func Initialize(address string, port int, f *os.File, wg *sync.WaitGroup) {
 	log.Println("polling workload")
 }
 
-func (wl *Workload) AddWork(merit int, command string) {
+func (w *Workload) AddWork(args AddWorkArgs, resp *Workload) error {
 	newWork := Work{
-		merit: merit,
-		status: 0,
-		command: command,
+		Merit: args.Merit,
+		Status: 0,
+		Command: args.Command,
 	}
 	workload = append(workload, newWork)
+	*resp = workload
+	return nil
 }
 
 func startRpc() {
 	server := rpc.NewServer()
-	server.Register(workload)
+	server.Register(&workload)
 	listener, err := net.Listen("tcp", "127.0.0.1:9002")
 	if err != nil {
 		panic(err)
@@ -69,11 +71,11 @@ func pollWorkload(wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
 		for index, work := range workload {
-			if work.status == 0 && len(children) > 0  {
+			if work.Status == 0 && len(children) > 0  {
 				wg.Add(1)
 				handler := make(chan string)
 				go handleWork(&workload[index], index, handler, wg)
-				workload[index].status = 1
+				workload[index].Status = 1
 			}
 		}
 	}
@@ -94,11 +96,11 @@ func handleWork(work *Work, index int, c chan string, wg *sync.WaitGroup) {
 	work.handler = c
 	child := children[0]
 	conn := child.conn
-	message := "2" + strconv.Itoa(index) + work.command + "\n"
+	message := "2" + strconv.Itoa(index) + work.Command + "\n"
 	err := sendMessage(conn, message)
 	if err != nil {
 		log.Println("failed to send work")
-		work.status = 0
+		work.Status = 0
 		return
 	}
 	select {
