@@ -50,6 +50,12 @@ func (w *Workload) AddWork(args AddWorkArgs, resp *Workload) error {
 		Command: args.Command,
 	}
 	workload = append(workload, newWork)
+	log.Println("work added:", newWork)
+	*resp = workload
+	return nil
+}
+
+func (w *Workload) GetWorkload(args string,  resp *Workload) error {
 	*resp = workload
 	return nil
 }

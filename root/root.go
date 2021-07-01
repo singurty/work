@@ -35,3 +35,17 @@ func AddWork(merit int, command string) {
 	}
 	fmt.Println(resp)
 }
+
+func ShowWorkload() {
+	client, err := rpc.Dial("tcp", "127.0.0.1:9002")
+	if err != nil {
+		fmt.Println("can not connect to the daemon")
+		panic(err)
+	}
+	var resp rootd.Workload
+	err = client.Call("Workload.GetWorkload", "", &resp)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(resp)
+}

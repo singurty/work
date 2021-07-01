@@ -94,11 +94,22 @@ func main() {
 			}
 		},
 	}
+	var cmdShow = &cobra.Command{
+		Use: "show",
+		Short: "show something",
+		Args: cobra.MinimumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			switch args[0] {
+			case "workload":
+				root.ShowWorkload()
+			}
+		},
+	}
 	var rootCmd = &cobra.Command{Use: "fakeroot"}
 
 	cmdRoot.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
 	cmdLog.Flags().BoolVarP(&follow, "follow", "f", false, "keep polling for logs")
 	cmdLog.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
-	rootCmd.AddCommand(cmdRoot, cmdChild, cmdLog, cmdAdd)
+	rootCmd.AddCommand(cmdRoot, cmdChild, cmdLog, cmdAdd, cmdShow)
 	rootCmd.Execute()
 }
