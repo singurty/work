@@ -109,11 +109,21 @@ func handleWork(work *Work, index int, c chan string, wg *sync.WaitGroup) {
 		work.Status = 0
 		return
 	}
-	select {
-	case message := <-c:
-		if string(message[0]) == "4" {
-			log.Println("work executed successfully")
-			log.Println(message[1:])
+	for {
+		select {
+		case message := <-c:
+			switch string(message[0]) {
+			case "3":
+				log.Println("child ack'd the work")
+			case "4":
+				work.Status = 2
+				log.Println("work executed successfully")
+				log.Println(message[1:])
+			case "5":
+				work.Status = 3
+				log.Println("child failed to do the work:", work.Command)
+				log.Println(message[1:])
+			}
 		}
 	}
 }
@@ -171,16 +181,15 @@ func handleChild(conn net.Conn) {
 		switch string(buffer[0]) {
 		case "1":
 			vitals <- 1
-		case "3":
-		case "4":
+		case "3", "4", "5":
 			index, err := strconv.Atoi(string(buffer[1]))
 			if err != nil {
-				log.Println("invalid work id received")
+				log.Println("invalid work index received")
 				continue
 			}
 			work := workload[index]
 			handler := work.handler
-			handler <- "4" + string(buffer[2:len(buffer)-1]) 
+			handler <- string(buffer[0]) + string(buffer[2:len(buffer)-1]) 
 		}
 		
 	}

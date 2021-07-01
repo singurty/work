@@ -5,7 +5,6 @@ import (
 	"os"
 	"strconv"
 	"sync"
-
 	"github.com/singurty/fakework/child"
 	"github.com/singurty/fakework/root"
 	"github.com/singurty/fakework/rootd"
@@ -97,12 +96,13 @@ func main() {
 	var cmdShow = &cobra.Command{
 		Use: "show",
 		Short: "show something",
-		Args: cobra.MinimumNArgs(1),
+	}
+	var cmdWorkload = &cobra.Command{
+		Use: "workload",
+		Short: "show current workload",
+		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			switch args[0] {
-			case "workload":
-				root.ShowWorkload()
-			}
+			root.ShowWorkload()
 		},
 	}
 	var rootCmd = &cobra.Command{Use: "fakeroot"}
@@ -111,5 +111,6 @@ func main() {
 	cmdLog.Flags().BoolVarP(&follow, "follow", "f", false, "keep polling for logs")
 	cmdLog.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
 	rootCmd.AddCommand(cmdRoot, cmdChild, cmdLog, cmdAdd, cmdShow)
+	cmdShow.AddCommand(cmdLog, cmdWorkload)
 	rootCmd.Execute()
 }

@@ -51,6 +51,7 @@ func pollRoot(wg *sync.WaitGroup) {
 			continue
 		} else {
 			if string(buffer[0]) == "2" {
+				fmt.Println("work received")
 				index, err := strconv.Atoi(string(buffer[1]))
 				if err != nil {
 					fmt.Println("invalid work index received")
@@ -75,13 +76,16 @@ func pollWorkload(wg *sync.WaitGroup) {
 }
 
 func handleWork(work *work) {
-	// check if command is added yet. this prevents race condition in which and entry has been creted but command has not been added
+	// check if command is added yet. this prevents race condition in which an entry has been created but command has not been added.
 	if len(work.command) == 0 {
 		return
 	}
 	output, err := executeCommand(work.command)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		work.status = 2
+		sendMessage(root.conn, "5" + strconv.Itoa(work.index) + err.Error() + "\n")
+		return
 	}
 	work.status = 1
 	sendMessage(root.conn, "4" + strconv.Itoa(work.index) + output + "\n")
@@ -94,6 +98,9 @@ func addWork(index int, command string) {
 		index: index,
 	}
 	workload = append(workload, newWork)
+	fmt.Println("work added", workload)
+	sendMessage(root.conn, "3" + strconv.Itoa(newWork.index) + "\n")
+	fmt.Println("sent work ack")
 }
 
 func executeCommand(command string) (string, error) {
