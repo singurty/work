@@ -83,14 +83,14 @@ func main() {
 		Args: cobra.RangeArgs(1, 2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 1 {
-				root.AddWork(args[0], 0)
+				root.AddWork(0, args[0])
 			} else if len(args) == 2 {
 				merit, err := strconv.Atoi(args[1])
 				if err != nil {
 					fmt.Println("invalid merit")
 					return
 				}
-				root.AddWork(args[0], merit)
+				root.AddWork(merit, args[0])
 			}
 		},
 	}

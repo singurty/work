@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"log"
 	"net"
+	"net/rpc"
 	"os"
 	"strconv"
 	"sync"
@@ -15,33 +16,53 @@ type child struct {
 	alive bool
 	conn net.Conn
 }
-type work struct {
+type Work struct {
 	merit int
 	status int
 	command string
 	handler chan string
 }
+type AddWorkArgs struct {
+	Merit int
+	Command string
+}
+type Workload []Work
+var workload Workload
 var children []child
-var workload []work
 
 func Initialize(address string, port int, f *os.File, wg *sync.WaitGroup) {
 	log.SetOutput(f)
+	wg.Add(1)
+	log.Println("starting rpc server")
+	go startRpc()
 	wg.Add(1)
 	go listenForChildren(address, port, wg)
 	log.Println("listening for children")
 	wg.Add(1)
 	go pollWorkload(wg)
 	log.Println("polling workload")
-	addWork(1, "whoami")
 }
 
-func addWork(merit int, command string) {
-	newWork := work{
+func (wl *Workload) AddWork(merit int, command string) {
+	newWork := Work{
 		merit: merit,
 		status: 0,
 		command: command,
 	}
 	workload = append(workload, newWork)
+}
+
+func startRpc() {
+	server := rpc.NewServer()
+	server.Register(workload)
+	listener, err := net.Listen("tcp", "127.0.0.1:9002")
+	if err != nil {
+		panic(err)
+	}
+	for {
+		conn, _ := listener.Accept()
+		go server.ServeConn(conn)
+	}
 }
 
 func pollWorkload(wg *sync.WaitGroup) {
@@ -68,7 +89,7 @@ Work status codes (for root)
 | 2   | work has been successfully executed  |
 */
 
-func handleWork(work *work, index int, c chan string, wg *sync.WaitGroup) {
+func handleWork(work *Work, index int, c chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	work.handler = c
 	child := children[0]
