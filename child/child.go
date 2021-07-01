@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"github.com/google/shlex"
 )
 
 type work struct {
@@ -51,7 +52,6 @@ func pollRoot(wg *sync.WaitGroup) {
 			continue
 		} else {
 			if string(buffer[0]) == "2" {
-				fmt.Println("work received")
 				index, err := strconv.Atoi(string(buffer[1]))
 				if err != nil {
 					fmt.Println("invalid work index received")
@@ -80,7 +80,8 @@ func handleWork(work *work) {
 	if len(work.command) == 0 {
 		return
 	}
-	output, err := executeCommand(work.command)
+	command, err := shlex.Split(work.command)
+	output, err := exec.Command(command[0], command[1:]...).Output()
 	if err != nil {
 		fmt.Println(err)
 		work.status = 2
@@ -88,7 +89,7 @@ func handleWork(work *work) {
 		return
 	}
 	work.status = 1
-	sendMessage(root.conn, "4" + strconv.Itoa(work.index) + output + "\n")
+	sendMessage(root.conn, "4" + strconv.Itoa(work.index) + string(output) + "\n")
 }
 
 func addWork(index int, command string) {
@@ -98,18 +99,7 @@ func addWork(index int, command string) {
 		index: index,
 	}
 	workload = append(workload, newWork)
-	fmt.Println("work added", workload)
 	sendMessage(root.conn, "3" + strconv.Itoa(newWork.index) + "\n")
-	fmt.Println("sent work ack")
-}
-
-func executeCommand(command string) (string, error) {
-	output, err := exec.Command(command).Output()
-	if err != nil {
-		fmt.Println(err)
-		return "", err
-	}
-	return string(output), nil
 }
 
 func sendMessage(conn net.Conn, message string) (error) {
