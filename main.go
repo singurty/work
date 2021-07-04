@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+	"sync"
 	"github.com/singurty/fakework/child"
 	"github.com/singurty/fakework/root"
 	"github.com/singurty/fakework/rootd"
 	"github.com/spf13/cobra"
-	"os"
-	"strconv"
-	"sync"
 )
 
 var wg sync.WaitGroup
@@ -20,10 +20,10 @@ func main() {
 	var logFileName string
 	var follow bool
 	var cmdRoot = &cobra.Command{
-		Use:   "root",
+		Use: "root",
 		Short: "run a root node",
-		Long:  "Run a root node listening on specified IP address and port. If IP address is not specified it'll listen on all interfaces",
-		Args:  cobra.RangeArgs(1, 2),
+		Long: "Run a root node listening on specified IP address and port. If IP address is not specified it'll listen on all interfaces",
+		Args: cobra.RangeArgs(1, 2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 1 {
 				port, err := strconv.Atoi(args[0])
@@ -31,7 +31,7 @@ func main() {
 					fmt.Println("invalid port number")
 					return
 				}
-				logFile, err := os.OpenFile(logFileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+				logFile, err :=  os.OpenFile(logFileName, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
 				if err != nil {
 					fmt.Println("error opening file:", err)
 					return
@@ -43,7 +43,7 @@ func main() {
 					fmt.Println("invalid port number")
 					return
 				}
-				logFile, err := os.OpenFile(logFileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+				logFile, err :=  os.OpenFile(logFileName, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
 				if err != nil {
 					fmt.Println("error opening file:", err)
 					return
@@ -53,10 +53,10 @@ func main() {
 		},
 	}
 	var cmdChild = &cobra.Command{
-		Use:   "child",
+		Use: "child",
 		Short: "run a child node",
-		Long:  "Run a child node and connect to a root node listening on specified IP address and port",
-		Args:  cobra.MinimumNArgs(2),
+		Long: "Run a child node and connect to a root node listening on specified IP address and port",
+		Args: cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			port, err := strconv.Atoi(args[1])
 			if err != nil {
@@ -67,19 +67,19 @@ func main() {
 		},
 	}
 	var cmdLog = &cobra.Command{
-		Use:   "log",
+		Use: "log",
 		Short: "view root daemon logs",
-		Long:  "Read logs produced by the root daemon. Reads from 'root.log' file by default",
-		Args:  cobra.NoArgs,
+		Long: "Read logs produced by the root daemon. Reads from 'root.log' file by default",
+		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			root.ViewLog(logFileName, follow)
 		},
 	}
 	var cmdAdd = &cobra.Command{
-		Use:   "add",
+		Use: "add",
 		Short: "add work",
-		Long:  "add a command to be executed by child",
-		Args:  cobra.RangeArgs(1, 2),
+		Long: "add a command to be executed by child",
+		Args: cobra.RangeArgs(1, 2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 1 {
 				root.AddWork(0, args[0])
@@ -94,29 +94,15 @@ func main() {
 		},
 	}
 	var cmdShow = &cobra.Command{
-		Use:   "show",
+		Use: "show",
 		Short: "show something",
 	}
 	var cmdWorkload = &cobra.Command{
-		Use:   "workload",
+		Use: "workload",
 		Short: "show current workload",
-		Args:  cobra.NoArgs,
+		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			root.ShowWorkload()
-		},
-	}
-	// for debug only
-	var cmdTest = &cobra.Command{
-		Use: "test",
-		Run: func(cmd *cobra.Command, args []string) {
-			child.StartPeerNode()
-		},
-	}
-	var cmdConnect = &cobra.Command{
-		Use: "connect",
-		Args: cobra.MinimumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			child.ConnectToPeer(args[0])
 		},
 	}
 	var rootCmd = &cobra.Command{Use: "fakeroot"}
@@ -124,7 +110,7 @@ func main() {
 	cmdRoot.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
 	cmdLog.Flags().BoolVarP(&follow, "follow", "f", false, "keep polling for logs")
 	cmdLog.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
-	rootCmd.AddCommand(cmdRoot, cmdChild, cmdLog, cmdAdd, cmdShow, cmdTest, cmdConnect)
+	rootCmd.AddCommand(cmdRoot, cmdChild, cmdLog, cmdAdd, cmdShow)
 	cmdShow.AddCommand(cmdLog, cmdWorkload)
 	rootCmd.Execute()
 }

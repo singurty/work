@@ -14,7 +14,6 @@ import (
 type child struct {
 	address string
 	alive bool
-	accepting bool
 	conn net.Conn
 }
 type Work struct {

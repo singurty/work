@@ -2,7 +2,6 @@ package child
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"net"
 	"os/exec"
@@ -10,9 +9,6 @@ import (
 	"sync"
 	"time"
 	"github.com/google/shlex"
-	"github.com/libp2p/go-libp2p"
-	peerstore "github.com/libp2p/go-libp2p-core/peer"
-	multiaddr "github.com/multiformats/go-multiaddr"
 )
 
 type work struct {
@@ -20,19 +16,16 @@ type work struct {
 	index int
 	command string
 }
-// node is used for both peers and root
 type node struct {
 	address string
-	accepting bool
 	conn net.Conn
 }
 
-var wg sync.WaitGroup
 var root node
-var peers []node
 var workload []work
 
 func Initialize(rootIp string, rootPort int) {
+	var wg sync.WaitGroup
 	root = node{address: rootIp + ":" + strconv.Itoa(rootPort)}
 	conn, err  := net.Dial("tcp", root.address)
 	root.conn = conn
@@ -42,53 +35,10 @@ func Initialize(rootIp string, rootPort int) {
 	wg.Add(1)
 	go pollRoot(&wg)
 	wg.Add(1)
-	go pingRoot(&wg)
+ 	go pingRoot(&wg)
 	wg.Add(1)
 	go pollWorkload(&wg)
 	wg.Wait()
-}
-
-func StartPeerNode() {
-	wg.Add(1)
-	ctx := context.Background()
-	peerNode, err := libp2p.New(ctx)
-	if err != nil {
-		panic(err)
-	}
-	peerInfo := peerstore.AddrInfo{
-		ID: peerNode.ID(),
-		Addrs: peerNode.Addrs(),
-	}
-	addrs, err := peerstore.AddrInfoToP2pAddrs(&peerInfo)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("node address:", addrs[0])
-	wg.Wait()
-	if err := peerNode.Close(); err != nil {
-		panic(err)
-	}
-	wg.Done()
-}
-
-func ConnectToPeer(address string) {
-	fmt.Println("connecting to", address)
-	addr, err := multiaddr.NewMultiaddr(address)
-	if err != nil {
-		panic(err)
-	}
-	peer, err := peerstore.AddrInfoFromP2pAddr(addr)
-	if err != nil {
-		panic(err)
-	}
-	ctx := context.Background()
-	peerNode, err := libp2p.New(ctx)
-	if err != nil {
-		panic(err)
-	}
-	if err := peerNode.Connect(ctx, *peer); err != nil {
-		panic(err)
-	}
 }
 
 func pollRoot(wg *sync.WaitGroup) {
@@ -158,10 +108,6 @@ func sendMessage(conn net.Conn, message string) (error) {
 		return err
 	}
 	return nil
-}
-
-func requestPeersList() {
-	sendMessage(root.conn, "6\n")
 }
 
 func pingRoot(wg *sync.WaitGroup) {
