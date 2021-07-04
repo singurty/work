@@ -27,7 +27,7 @@ type AddWorkArgs struct {
 	Command string
 }
 type Workload []Work
-type Children []Child
+type Children []*Child
 var workload Workload
 var children Children
 
@@ -61,8 +61,12 @@ func (w *Workload) GetWorkload(args string,  resp *Workload) error {
 	return nil
 }
 
-func (c *Children) GetChildren(args string, resp *Children) error {
-	*resp = children
+func (c *Children) GetChildren(args string, resp *[]Child) error {
+	var toSend []Child
+	for _, child := range children {
+		toSend = append(toSend, *child)
+	}
+	*resp = toSend
 	return nil
 }
 
@@ -171,7 +175,7 @@ Protocol IDs
 
 func handleChild(conn net.Conn) {
 	child := Child{Address: conn.RemoteAddr().String(), Alive: true, conn: conn}
-	children = append(children, child)
+	children = append(children, &child)
 	log.Println("new child connected:", child.Address)
 	defer conn.Close()
 	vitals := make(chan int)
@@ -207,7 +211,7 @@ func checkChildVitals(child *Child, c chan int) {
 		select {
 		case <-c:
 			continue
-		case <-time.After(30 * time.Second):
+		case <-time.After(5 * time.Second):
 			child.Alive = false
 			break
 		}

@@ -53,7 +53,7 @@ func ShowWorkload() {
 
 func ShowChildren() {
 	client := dialDaemon()
-	var resp rootd.Children
+	var resp []rootd.Child
 	err := client.Call("Children.GetChildren", "", &resp)
 	if err != nil {
 		panic(err)

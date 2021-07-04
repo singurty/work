@@ -117,7 +117,7 @@ func pingRoot(wg *sync.WaitGroup) {
 			fmt.Println(err)
 			break
 		}
-		time.Sleep(10 * time.Second)
+		time.Sleep(time.Second)
 	}
 	wg.Done()
 }
