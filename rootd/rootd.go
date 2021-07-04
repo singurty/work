@@ -2,6 +2,7 @@ package rootd
 
 import (
 	"bufio"
+	"encoding/gob"
 	"log"
 	"net"
 	"net/rpc"
@@ -12,9 +13,9 @@ import (
 )
 
 type child struct {
-	address string
-	alive bool
-	accepting bool
+	Address string
+	Alive bool
+	Accepting bool
 	conn net.Conn
 }
 type Work struct {
@@ -129,6 +130,14 @@ func handleWork(work *Work, index int, c chan string, wg *sync.WaitGroup) {
 	}
 }
 
+func sendPeers(conn net.Conn) {
+	enc := gob.NewEncoder(conn)
+	err := enc.Encode(children)
+	if err != nil {
+		log.Fatal("encoding error", err)
+	}
+}
+
 func sendMessage(conn net.Conn, message string) error {
 	_, err := conn.Write([]byte(message))
 	return err
@@ -164,15 +173,15 @@ Protocol IDs
 */
 
 func handleChild(conn net.Conn) {
-	child := child{address: conn.RemoteAddr().String(), alive: true, conn: conn}
+	child := child{Address: conn.RemoteAddr().String(), Alive: true, conn: conn}
 	children = append(children, child)
-	log.Println("new child connected:", child.address)
+	log.Println("new child connected:", child.Address)
 	defer conn.Close()
 	vitals := make(chan int)
 	go checkChildVitals(&child, vitals)
 	for {
-		if !child.alive {
-			log.Println("child dead:", child.address)
+		if !child.Alive {
+			log.Println("child dead:", child.Address)
 			return
 		}
 		buffer, _ := bufio.NewReader(conn).ReadBytes('\n')
@@ -202,7 +211,7 @@ func checkChildVitals(child *child, c chan int) {
 		case <-c:
 			continue
 		case <-time.After(30 * time.Second):
-			child.alive = false
+			child.Alive = false
 			break
 		}
 	}
