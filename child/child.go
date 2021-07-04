@@ -35,7 +35,7 @@ func Initialize(rootIp string, rootPort int) {
 	wg.Add(1)
 	go pollRoot(&wg)
 	wg.Add(1)
- 	go pingRoot(&wg)
+	go pingRoot(&wg)
 	wg.Add(1)
 	go pollWorkload(&wg)
 	wg.Wait()

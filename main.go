@@ -105,12 +105,21 @@ func main() {
 			root.ShowWorkload()
 		},
 	}
+	var cmdChildren = &cobra.Command{
+		Use: "children",
+		Short: "show all children",
+		Long: "show all children ever connect to this root. check flags for filtering output",
+		Args: cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			root.ShowChildren()
+		},
+	}
 	var rootCmd = &cobra.Command{Use: "fakeroot"}
 
 	cmdRoot.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
 	cmdLog.Flags().BoolVarP(&follow, "follow", "f", false, "keep polling for logs")
 	cmdLog.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
 	rootCmd.AddCommand(cmdRoot, cmdChild, cmdLog, cmdAdd, cmdShow)
-	cmdShow.AddCommand(cmdLog, cmdWorkload)
+	cmdShow.AddCommand(cmdLog, cmdWorkload, cmdChildren)
 	rootCmd.Execute()
 }

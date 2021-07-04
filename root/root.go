@@ -3,7 +3,6 @@ package root
 import (
 	"fmt"
 	"net/rpc"
-
 	"github.com/hpcloud/tail"
 	"github.com/singurty/fakework/rootd"
 )
@@ -18,18 +17,24 @@ func ViewLog(logFile string, follow bool) {
 	}
 }
 
-func AddWork(merit int, command string) {
+func dialDaemon() *rpc.Client {
 	client, err := rpc.Dial("tcp", "127.0.0.1:9002")
 	if err != nil {
-		fmt.Println("can not connect to the daemon")
+		fmt.Println("could not connect to the root daemon. is it running?")
+		fmt.Println()
 		panic(err)
 	}
+	return client
+}
+
+func AddWork(merit int, command string) {
+	client := dialDaemon()
 	var resp rootd.Workload
 	args := &rootd.AddWorkArgs{
 		Merit: merit,
 		Command: command,
 	}
-	err = client.Call("Workload.AddWork", args, &resp)
+	err := client.Call("Workload.AddWork", args, &resp)
 	if err != nil {
 		panic(err)
 	}
@@ -37,13 +42,19 @@ func AddWork(merit int, command string) {
 }
 
 func ShowWorkload() {
-	client, err := rpc.Dial("tcp", "127.0.0.1:9002")
+	client := dialDaemon()
+	var resp rootd.Workload
+	err := client.Call("Workload.GetWorkload", "", &resp)
 	if err != nil {
-		fmt.Println("can not connect to the daemon")
 		panic(err)
 	}
-	var resp rootd.Workload
-	err = client.Call("Workload.GetWorkload", "", &resp)
+	fmt.Println(resp)
+}
+
+func ShowChildren() {
+	client := dialDaemon()
+	var resp rootd.Children
+	err := client.Call("Children.GetChildren", "", &resp)
 	if err != nil {
 		panic(err)
 	}

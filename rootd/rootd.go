@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-type child struct {
-	address string
-	alive bool
+type Child struct {
+	Address string
+	Alive bool
 	conn net.Conn
 }
 type Work struct {
@@ -27,8 +27,9 @@ type AddWorkArgs struct {
 	Command string
 }
 type Workload []Work
+type Children []Child
 var workload Workload
-var children []child
+var children Children
 
 func Initialize(address string, port int, f *os.File, wg *sync.WaitGroup) {
 	log.SetOutput(f)
@@ -60,9 +61,15 @@ func (w *Workload) GetWorkload(args string,  resp *Workload) error {
 	return nil
 }
 
+func (c *Children) GetChildren(args string, resp *Children) error {
+	*resp = children
+	return nil
+}
+
 func startRpc() {
 	server := rpc.NewServer()
 	server.Register(&workload)
+	server.Register(&children)
 	listener, err := net.Listen("tcp", "127.0.0.1:9002")
 	if err != nil {
 		panic(err)
@@ -163,15 +170,15 @@ Protocol IDs
 */
 
 func handleChild(conn net.Conn) {
-	child := child{address: conn.RemoteAddr().String(), alive: true, conn: conn}
+	child := Child{Address: conn.RemoteAddr().String(), Alive: true, conn: conn}
 	children = append(children, child)
-	log.Println("new child connected:", child.address)
+	log.Println("new child connected:", child.Address)
 	defer conn.Close()
 	vitals := make(chan int)
 	go checkChildVitals(&child, vitals)
 	for {
-		if !child.alive {
-			log.Println("child dead:", child.address)
+		if !child.Alive {
+			log.Println("child dead:", child.Address)
 			return
 		}
 		buffer, _ := bufio.NewReader(conn).ReadBytes('\n')
@@ -195,13 +202,13 @@ func handleChild(conn net.Conn) {
 	}
 }
 
-func checkChildVitals(child *child, c chan int) {
+func checkChildVitals(child *Child, c chan int) {
 	for {
 		select {
 		case <-c:
 			continue
 		case <-time.After(30 * time.Second):
-			child.alive = false
+			child.Alive = false
 			break
 		}
 	}
