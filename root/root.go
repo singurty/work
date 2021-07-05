@@ -48,7 +48,20 @@ func ShowWorkload() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(resp)
+	for index, work := range resp {
+		var status string
+		switch work.Status {
+		case 0:
+			status = "new work. nothing done yet"
+		case 1:
+			status = "work sent to a child"
+		case 2:
+			status = "work successfully executed"
+		case 4:
+			status = "work was sent to a child but error'd"
+		}
+		fmt.Printf("%v. Command: %v Merit: %v Status: %v\n", index + 1, work.Command, work.Merit, status)
+	}
 }
 
 func ShowChildren() {
@@ -58,5 +71,7 @@ func ShowChildren() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(resp)
+	for index, child := range resp {
+		fmt.Printf("%v. Address: %v Alive: %t\n", index + 1, child.Address, child.Alive)
+	}
 }
