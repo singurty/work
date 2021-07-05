@@ -21,6 +21,7 @@ type Work struct {
 	Status int
 	Command string
 	handler chan string
+	Output string
 }
 type AddWorkArgs struct {
 	Merit int
@@ -130,6 +131,7 @@ func handleWork(work *Work, index int, c chan string, wg *sync.WaitGroup) {
 				work.Status = 2
 				log.Println("work executed successfully")
 				log.Println(message[1:])
+				work.Output = message[1:]
 			case "5":
 				work.Status = 3
 				log.Println("child failed to do the work:", work.Command)
