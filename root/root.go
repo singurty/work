@@ -39,7 +39,7 @@ func AddWork(merit int, command string, each bool) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("successfully added")
+	fmt.Println("successfully added", resp)
 }
 
 func ShowWorkload() {

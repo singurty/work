@@ -53,6 +53,7 @@ func (w *Workload) AddWork(args AddWorkArgs, resp *Workload) error {
 	newWork := Work{
 		Merit: args.Merit,
 		Status: 0,
+		Each: args.Each,
 		Command: args.Command,
 	}
 	workload = append(workload, newWork)
@@ -95,8 +96,7 @@ func pollWorkload(wg *sync.WaitGroup) {
 		for index, work := range workload {
 			if work.Status == 0 && len(children) > 0  {
 				wg.Add(1)
-				handler := make(chan string)
-				go handleWork(&workload[index], index, handler, wg)
+				go handleWork(&workload[index], index, wg)
 				workload[index].Status = 1
 			}
 		}
@@ -113,8 +113,9 @@ Work status codes (for root)
 | 2   | work has been successfully executed  |
 */
 
-func handleWork(work *Work, index int, c chan string, wg *sync.WaitGroup) {
+func handleWork(work *Work, index int, wg *sync.WaitGroup) {
 	defer wg.Done()
+	c := make(chan string)
 	work.handler = c
 	var targetChildren Children
 	if work.Each {
@@ -122,7 +123,9 @@ func handleWork(work *Work, index int, c chan string, wg *sync.WaitGroup) {
 	} else {
 		targetChildren = append(targetChildren, getSuitableChild())
 	}
+	log.Println("sending work to", targetChildren)
 	for _, child := range targetChildren {
+		log.Println("sending work to", child)
 		child.Assigned++
 		work.child = child
 		conn := child.conn
@@ -133,22 +136,26 @@ func handleWork(work *Work, index int, c chan string, wg *sync.WaitGroup) {
 			work.Status = 0
 			return
 		}
-		for {
-			select {
-			case message := <-c:
-				switch string(message[0]) {
-				case "3":
-					log.Println("child ack'd the work")
-				case "4":
-					work.Status = 2
-					log.Println("work executed successfully")
-					log.Println(message[1:])
-					work.Output = message[1:]
-				case "5":
-					work.Status = 3
-					log.Println("child failed to do the work:", work.Command)
-					log.Println(message[1:])
-				}
+		go workHandlerListener(work, c)
+	}
+}
+
+func workHandlerListener(work *Work, c chan string) {
+	for {
+		select {
+		case message := <-c:
+			switch string(message[0]) {
+			case "3":
+				log.Println("child ack'd the work")
+			case "4":
+				work.Status = 2
+				log.Println("work executed successfully")
+				log.Println(message[1:])
+				work.Output = message[1:]
+			case "5":
+				work.Status = 3
+				log.Println("child failed to do the work:", work.Command)
+				log.Println(message[1:])
 			}
 		}
 	}
@@ -227,7 +234,7 @@ func handleChild(conn net.Conn) {
 			handler := work.handler
 			handler <- string(buffer[0]) + string(buffer[2:len(buffer)-1]) 
 		}
-		
+
 	}
 }
 
