@@ -27,18 +27,19 @@ func dialDaemon() *rpc.Client {
 	return client
 }
 
-func AddWork(merit int, command string) {
+func AddWork(merit int, command string, each bool) {
 	client := dialDaemon()
 	var resp rootd.Workload
 	args := &rootd.AddWorkArgs{
 		Merit: merit,
 		Command: command,
+		Each: each,
 	}
 	err := client.Call("Workload.AddWork", args, &resp)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(resp)
+	fmt.Println("successfully added")
 }
 
 func ShowWorkload() {

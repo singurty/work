@@ -14,18 +14,22 @@ import (
 type Child struct {
 	Address string
 	Alive bool
+	Assigned int
 	conn net.Conn
 }
 type Work struct {
 	Merit int
 	Status int
 	Command string
+	Each bool
 	handler chan string
+	child *Child
 	Output string
 }
 type AddWorkArgs struct {
 	Merit int
 	Command string
+	Each bool
 }
 type Workload []Work
 type Children []*Child
@@ -112,33 +116,52 @@ Work status codes (for root)
 func handleWork(work *Work, index int, c chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	work.handler = c
-	child := children[0]
-	conn := child.conn
-	message := "2" + strconv.Itoa(index) + work.Command + "\n"
-	err := sendMessage(conn, message)
-	if err != nil {
-		log.Println("failed to send work")
-		work.Status = 0
-		return
+	var targetChildren Children
+	if work.Each {
+		targetChildren = children
+	} else {
+		targetChildren = append(targetChildren, getSuitableChild())
 	}
-	for {
-		select {
-		case message := <-c:
-			switch string(message[0]) {
-			case "3":
-				log.Println("child ack'd the work")
-			case "4":
-				work.Status = 2
-				log.Println("work executed successfully")
-				log.Println(message[1:])
-				work.Output = message[1:]
-			case "5":
-				work.Status = 3
-				log.Println("child failed to do the work:", work.Command)
-				log.Println(message[1:])
+	for _, child := range targetChildren {
+		child.Assigned++
+		work.child = child
+		conn := child.conn
+		message := "2" + strconv.Itoa(index) + work.Command + "\n"
+		err := sendMessage(conn, message)
+		if err != nil {
+			log.Println("failed to send work")
+			work.Status = 0
+			return
+		}
+		for {
+			select {
+			case message := <-c:
+				switch string(message[0]) {
+				case "3":
+					log.Println("child ack'd the work")
+				case "4":
+					work.Status = 2
+					log.Println("work executed successfully")
+					log.Println(message[1:])
+					work.Output = message[1:]
+				case "5":
+					work.Status = 3
+					log.Println("child failed to do the work:", work.Command)
+					log.Println(message[1:])
+				}
 			}
 		}
 	}
+}
+
+func getSuitableChild() *Child {
+	var least *Child
+	for _, child := range children {
+		if child.Assigned <= least.Assigned {
+			least = child
+		}
+	}
+	return least
 }
 
 func sendMessage(conn net.Conn, message string) error {

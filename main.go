@@ -19,6 +19,7 @@ func main() {
 	defer logFile.Close()
 	var logFileName string
 	var follow bool
+	var each bool
 	var cmdRoot = &cobra.Command{
 		Use: "root",
 		Short: "run a root node",
@@ -82,14 +83,14 @@ func main() {
 		Args: cobra.RangeArgs(1, 2),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 1 {
-				root.AddWork(0, args[0])
+				root.AddWork(0, args[0], each)
 			} else if len(args) == 2 {
 				merit, err := strconv.Atoi(args[1])
 				if err != nil {
 					fmt.Println("invalid merit")
 					return
 				}
-				root.AddWork(merit, args[0])
+				root.AddWork(merit, args[0], each)
 			}
 		},
 	}
@@ -119,6 +120,7 @@ func main() {
 	cmdRoot.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
 	cmdLog.Flags().BoolVarP(&follow, "follow", "f", false, "keep polling for logs")
 	cmdLog.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
+	cmdAdd.Flags().BoolVarP(&each, "each", "e", false, "work should be executed by each child")
 	rootCmd.AddCommand(cmdRoot, cmdChild, cmdLog, cmdAdd, cmdShow)
 	cmdShow.AddCommand(cmdLog, cmdWorkload, cmdChildren)
 	rootCmd.Execute()
