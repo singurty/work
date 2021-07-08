@@ -162,7 +162,7 @@ func workHandlerListener(work *Work, c chan string) {
 }
 
 func getSuitableChild() *Child {
-	var least *Child
+	least := children[0]
 	for _, child := range children {
 		if child.Assigned <= least.Assigned {
 			least = child
