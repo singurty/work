@@ -27,11 +27,10 @@ func dialDaemon() *rpc.Client {
 	return client
 }
 
-func AddWork(merit int, command string, each bool) {
+func AddWork(command string, each bool) {
 	client := dialDaemon()
 	var resp rootd.Workload
 	args := &rootd.AddWorkArgs{
-		Merit: merit,
 		Command: command,
 		Each: each,
 	}
@@ -63,9 +62,9 @@ func ShowWorkload() {
 		}
 		if len(work.Output) == 0 {
 			fmt.Println(len(work.Output))
-			fmt.Printf("%v. Command: %v Merit: %v Status: %v\n", index + 1, work.Command, work.Merit, status)
+			fmt.Printf("%v. Command: %v Status: %v\n", index + 1, work.Command, status)
 		} else {
-			fmt.Printf("%v. Command: %v Merit: %v Status: %v Output: %v\n", index + 1, work.Command, work.Merit, status, work.Output)
+			fmt.Printf("%v. Command: %v Status: %v Output: %v\n", index + 1, work.Command, status, work.Output)
 		}
 	}
 }

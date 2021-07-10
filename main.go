@@ -80,18 +80,9 @@ func main() {
 		Use: "add",
 		Short: "add work",
 		Long: "add a command to be executed by child",
-		Args: cobra.RangeArgs(1, 2),
+		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) == 1 {
-				root.AddWork(0, args[0], each)
-			} else if len(args) == 2 {
-				merit, err := strconv.Atoi(args[1])
-				if err != nil {
-					fmt.Println("invalid merit")
-					return
-				}
-				root.AddWork(merit, args[0], each)
-			}
+			root.AddWork(0, args[0], each)
 		},
 	}
 	var cmdShow = &cobra.Command{

@@ -18,7 +18,6 @@ type Child struct {
 	conn net.Conn
 }
 type Work struct {
-	Merit int
 	Status int
 	Command string
 	Each bool
@@ -27,7 +26,6 @@ type Work struct {
 	Output string
 }
 type AddWorkArgs struct {
-	Merit int
 	Command string
 	Each bool
 }
@@ -51,7 +49,6 @@ func Initialize(address string, port int, f *os.File, wg *sync.WaitGroup) {
 
 func (w *Workload) AddWork(args AddWorkArgs, resp *Workload) error {
 	newWork := Work{
-		Merit: args.Merit,
 		Status: 0,
 		Each: args.Each,
 		Command: args.Command,
