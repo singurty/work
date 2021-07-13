@@ -1,4 +1,4 @@
-A utility to help you manage multiple computers ("nodes") from one. The node where you managem them is called "root" aand the nodes you manage are called "children".
+A utility to help you manage multiple computers ("nodes") from one. The node where you manage them is called "root" and the nodes you manage are called "children".
 ## Running a root node
 ```
 ./fakework root 8000
@@ -21,7 +21,6 @@ Usage:
 Available Commands:
   add         add work
   child       run a child node
-  completion  generate the autocompletion script for the specified shell
   help        Help about any command
   log         view root daemon logs
   root        run a root node
