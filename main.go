@@ -82,7 +82,7 @@ func main() {
 		Long: "add a command to be executed by child",
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			root.AddWork(0, args[0], each)
+			root.AddWork(args[0], each)
 		},
 	}
 	var cmdShow = &cobra.Command{
