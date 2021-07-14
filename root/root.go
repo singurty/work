@@ -62,7 +62,6 @@ func ShowWorkload() {
 			status = "work was sent to a child but error'd"
 		}
 		if len(work.Output) == 0 {
-			fmt.Println(len(work.Output))
 			fmt.Printf("%v. Command: %v Status: %v\n", index + 1, work.Command, status)
 		} else {
 			fmt.Printf("%v. Command: %v Status: %v Output: %v\n", index + 1, work.Command, status, work.Output)
