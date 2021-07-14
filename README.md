@@ -1,6 +1,8 @@
 A utility to help you control multiple computers ("nodes") from one. The node where you control them is called "root" and the nodes you control are called "children".
 
 To run a root node, you should start the `rootd` daemon first then you can talk to the daemon with the client. (like how docker works)
+## Installation
+Grab the latest binary for your system from [releases](https://github.com/singurty/fakework/releases/) and you're good to go.
 ## Tutorial
 ```
 $ ./fakework root 8000 &
