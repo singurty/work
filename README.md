@@ -1,6 +1,6 @@
-A utility to help you manage multiple computers ("nodes") from one. The node where you manage them is called "root" and the nodes you manage are called "children".
+A utility to help you control multiple computers ("nodes") from one. The node where you control them is called "root" and the nodes you control are called "children".
 
-To run a root node, you should start the `rootd` daemon first then you can talk to the daemon with the client. (like docker)
+To run a root node, you should start the `rootd` daemon first then you can talk to the daemon with the client. (like how docker works)
 ## Tutorial
 ```
 $ ./fakework root 8000 &
@@ -21,7 +21,7 @@ successfully added
 runs the command `whoami` on all connected children
 ```
 $ ./fakework show workload
-1. Command: whoami Status: new work. nothing done yet
+1. Command: whoami Status: work successfully executed Output: singurty
 ```
 show the current workload. shows output of the command if it has been executed.
 ```
