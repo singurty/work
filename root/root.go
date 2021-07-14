@@ -38,7 +38,8 @@ func AddWork(command string, each bool) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("successfully added", resp)
+	fmt.Println("successfully added. new workload:")
+	ShowWorkload()
 }
 
 func ShowWorkload() {

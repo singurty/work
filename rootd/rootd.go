@@ -55,7 +55,6 @@ func (w *Workload) AddWork(args AddWorkArgs, resp *Workload) error {
 	}
 	workload = append(workload, newWork)
 	log.Println("work added:", newWork)
-	*resp = workload
 	return nil
 }
 
