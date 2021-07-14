@@ -108,6 +108,7 @@ func main() {
 	}
 	var rootCmd = &cobra.Command{Use: "fakeroot"}
 
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	cmdRoot.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
 	cmdLog.Flags().BoolVarP(&follow, "follow", "f", false, "keep polling for logs")
 	cmdLog.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")
