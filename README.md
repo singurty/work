@@ -1,18 +1,38 @@
 A utility to help you manage multiple computers ("nodes") from one. The node where you manage them is called "root" and the nodes you manage are called "children".
-## Running a root node
+
+To run a root node, you should start the `rootd` daemon first then you can talk to the daemon with the client. (like docker)
+## Tutorial
 ```
-./fakework root 8000
+$ ./fakework root 8000 &
 ```
-starts a root node on port 8000 on all ip addresses available
+starts a root daemon on port 8000 on all ip addresses available
 ```
 ./fakework root 127.0.0.1 8000
 ```
-starts a root node on 127.0.0.1:8000
-## Running a child node
+starts a root daemon on 127.0.0.1:8000
 ```
 ./fakework child 127.0.0.1 8000
 ```
 starts a child node connected to the root node listening at 127.0.0.1:8000
+```
+$ ./fakework add whoami --each
+successfully added
+```
+runs the command `whoami` on all connected children
+```
+$ ./fakework show workload
+1. Command: whoami Status: new work. nothing done yet
+```
+show the current workload. shows output of the command if it has been executed.
+```
+$ ./fakework log -f
+2021/07/08 21:58:19 starting rpc server
+2021/07/08 21:58:19 listening for children
+2021/07/08 21:58:19 polling workload
+2021/07/08 21:58:26 new child connected: 127.0.0.1:35328
+2021/07/08 21:58:33 work added: {0 0 whoami false <nil> <nil> }
+```
+shows live logs
 # Usage
 ```
 Usage:
