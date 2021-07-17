@@ -106,7 +106,7 @@ func main() {
 			root.ShowChildren()
 		},
 	}
-	var rootCmd = &cobra.Command{Use: "fakeroot"}
+	var rootCmd = &cobra.Command{Use: "fakework"}
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	cmdRoot.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")

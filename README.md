@@ -1,6 +1,6 @@
 A utility to help you control multiple computers ("nodes") from one. The node where you control them is called "root" and the nodes you control are called "children".
 
-To run a root node, you should start the `rootd` daemon first then you can talk to the daemon with the client. (like how docker works)
+To run a root node, you should start the `rootd` daemon first then you can talk to the daemon with the client (like how docker works).
 ## Installation
 Grab the latest binary for your system from [releases](https://github.com/singurty/fakework/releases/) and you're good to go.
 ## Tutorial
@@ -25,7 +25,7 @@ runs the command `whoami` on all connected children
 $ ./fakework show workload
 1. Command: whoami Status: work successfully executed Output: singurty
 ```
-show the current workload. shows output of the command if it has been executed.
+shows the current workload. shows output of the command if it has been executed.
 ```
 $ ./fakework log -f
 2021/07/08 21:58:19 starting rpc server
@@ -38,7 +38,7 @@ shows live logs
 # Usage
 ```
 Usage:
-  fakeroot [command]
+  fakework [command]
 
 Available Commands:
   add         add work
