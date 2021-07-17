@@ -9,7 +9,7 @@ $ ./fakework root 8000 &
 ```
 starts a root daemon on port 8000 on all ip addresses available
 ```
-./fakework root 127.0.0.1 8000
+./fakework root 127.0.0.1 8000 &
 ```
 starts a root daemon on 127.0.0.1:8000
 ```
