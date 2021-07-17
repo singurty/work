@@ -49,7 +49,7 @@ Available Commands:
   show        show something
 
 Flags:
-  -h, --help   help for fakeroot
+  -h, --help   help for fakework
 
-Use "fakeroot [command] --help" for more information about a command.
+Use "fakework [command] --help" for more information about a command.
 ```
