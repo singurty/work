@@ -5,9 +5,9 @@ import (
 	"os"
 	"strconv"
 	"sync"
-	"github.com/singurty/fakework/child"
-	"github.com/singurty/fakework/root"
-	"github.com/singurty/fakework/rootd"
+	"github.com/singurty/work/child"
+	"github.com/singurty/work/root"
+	"github.com/singurty/work/rootd"
 	"github.com/spf13/cobra"
 )
 
@@ -106,7 +106,7 @@ func main() {
 			root.ShowChildren()
 		},
 	}
-	var rootCmd = &cobra.Command{Use: "fakework"}
+	var rootCmd = &cobra.Command{Use: "work"}
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	cmdRoot.Flags().StringVarP(&logFileName, "log", "l", "root.log", "file to write logs to (Default: root.log)")

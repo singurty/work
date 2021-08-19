@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/rpc"
 	"github.com/hpcloud/tail"
-	"github.com/singurty/fakework/rootd"
+	"github.com/singurty/work/rootd"
 )
 
 func ViewLog(logFile string, follow bool) {

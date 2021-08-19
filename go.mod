@@ -1,4 +1,4 @@
-module github.com/singurty/fakework
+module github.com/singurty/work
 
 go 1.13
 
