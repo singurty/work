@@ -2,32 +2,32 @@ A utility to help you control multiple computers ("nodes") from one. The node wh
 
 To run a root node, you should start the `rootd` daemon first then you can talk to the daemon with the client (like how docker works).
 ## Installation
-Grab the latest binary for your system from [releases](https://github.com/singurty/fakework/releases/) and you're good to go.
+Grab the latest binary for your system from [releases](https://github.com/singurty/work/releases/) and you're good to go.
 ## Tutorial
 ```
-$ ./fakework root 8000 &
+$ ./work root 8000 &
 ```
 starts a root daemon on port 8000 on all ip addresses available
 ```
-$ ./fakework root 127.0.0.1 8000 &
+$ ./work root 127.0.0.1 8000 &
 ```
 starts a root daemon on 127.0.0.1:8000
 ```
-$ ./fakework child 127.0.0.1 8000
+$ ./work child 127.0.0.1 8000
 ```
 starts a child node connected to the root node listening at 127.0.0.1:8000
 ```
-$ ./fakework add whoami --each
+$ ./work add whoami --each
 successfully added
 ```
 runs the command `whoami` on all connected children
 ```
-$ ./fakework show workload
+$ ./work show workload
 1. Command: whoami Status: work successfully executed Output: singurty
 ```
 shows the current workload. shows output of the command if it has been executed.
 ```
-$ ./fakework log -f
+$ ./work log -f
 2021/07/08 21:58:19 starting rpc server
 2021/07/08 21:58:19 listening for children
 2021/07/08 21:58:19 polling workload
@@ -38,7 +38,7 @@ shows live logs
 # Usage
 ```
 Usage:
-  fakework [command]
+  work [command]
 
 Available Commands:
   add         add work
@@ -49,7 +49,7 @@ Available Commands:
   show        show something
 
 Flags:
-  -h, --help   help for fakework
+  -h, --help   help for work
 
-Use "fakework [command] --help" for more information about a command.
+Use "work [command] --help" for more information about a command.
 ```
